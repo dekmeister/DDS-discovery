@@ -1,0 +1,142 @@
+// Vessel Traffic Service — interface definition.
+//
+// This file is the ICD for the whole project. Everything else is generated
+// from it or written against it. Generate the Python module with:
+//
+//     idlc -l py idl/vts.idl
+//
+// Keying decisions are the most important thing in this file. Read the
+// comments on @key before changing anything.
+
+module vts {
+
+  // ---------------------------------------------------------------------
+  // Shared value types (not topic types — no keys, never published alone)
+  // ---------------------------------------------------------------------
+
+  struct Position {
+    double lat;          // degrees, WGS84
+    double lon;          // degrees, WGS84
+  };
+
+  enum NavStatus {
+    UNDER_WAY,
+    AT_ANCHOR,
+    MOORED,
+    AGROUND,
+    NOT_UNDER_COMMAND,
+    UNKNOWN_STATUS
+  };
+
+  enum ZoneKind {
+    TSS_LANE,            // traffic separation scheme lane
+    EXCLUSION,
+    ANCHORAGE,
+    PILOT_BOARDING
+  };
+
+  // ---------------------------------------------------------------------
+  // VesselReport — one shore station's observation of one vessel.
+  //
+  // KEYED ON MMSI ALONE. This is deliberate and load-bearing.
+  //
+  // Station A and station B with overlapping coverage both observe vessel
+  // 316001234. Because station_id is NOT part of the key, both are writing
+  // the SAME instance, which is what makes OWNERSHIP=EXCLUSIVE arbitration
+  // meaningful: readers accept whichever writer currently has the highest
+  // ownership strength FOR THAT INSTANCE, and fail over per instance when
+  // one goes quiet.
+  //
+  // If you key on (mmsi, station_id) you get two independent instances,
+  // no contention, and no failover lesson. Do not "fix" it that way.
+  // ---------------------------------------------------------------------
+
+  struct VesselReport {
+    @key unsigned long mmsi;
+
+    unsigned short station_id;      // observer identity — NOT a key
+    Position pos;
+    float sog_kn;                   // speed over ground, knots
+    float cog_deg;                  // course over ground, degrees true
+    NavStatus nav_status;
+    float range_nm;                 // range from the observing station
+    long long observed_utc_ns;      // observation time, not publish time
+  };
+
+  // ---------------------------------------------------------------------
+  // Track — the fusion node's consolidated picture.
+  //
+  // Keyed on track_id rather than mmsi: a track can exist before its MMSI
+  // is resolved, and the operator can split or merge tracks. mmsi is
+  // carried as an attribute, and may be 0 when unresolved.
+  //
+  // This is the topic the operator can DISPOSE (spurious track deleted),
+  // which is semantically distinct from a vessel leaving coverage.
+  // ---------------------------------------------------------------------
+
+  struct Track {
+    @key unsigned long track_id;
+
+    unsigned long mmsi;             // 0 = unresolved
+    Position pos;
+    float sog_kn;
+    float cog_deg;
+    float quality;                  // 0.0 .. 1.0 fusion confidence
+    unsigned short contributing_stations;
+    long long updated_utc_ns;
+  };
+
+  // ---------------------------------------------------------------------
+  // Zone — traffic separation schemes, exclusion zones, anchorages.
+  //
+  // Written rarely, must reach late joiners: this is the TRANSIENT_LOCAL
+  // topic. Disposal is meaningful here too (a zone is withdrawn), which
+  // gives a second, slower-moving example of the same lifecycle.
+  // ---------------------------------------------------------------------
+
+  struct Zone {
+    @key unsigned short zone_id;
+
+    string<64> name;
+    ZoneKind kind;
+    sequence<Position, 32> boundary;
+    long long effective_from_utc_ns;
+  };
+
+  // ---------------------------------------------------------------------
+  // OperatorCommand — deliberately UNKEYED.
+  //
+  // Every command is a distinct event, not an observation of a persistent
+  // object. Nothing supersedes anything. This is why it takes KEEP_ALL and
+  // why KEEP_LAST(1) would be a misdescription of the data rather than a
+  // tuning choice. Lab 02 makes that concrete.
+  // ---------------------------------------------------------------------
+
+  struct OperatorCommand {
+    unsigned long long command_id;
+    unsigned short op_code;         // 0=drop track, 1=merge, 2=reinstate
+    unsigned long track_id;
+    unsigned long merge_into_track_id;
+    string<128> reason;
+    long long issued_utc_ns;
+  };
+
+  // ---------------------------------------------------------------------
+  // StationHealth — existence and freshness ARE the payload.
+  //
+  // Carries both DEADLINE (is it reporting at the promised rate?) and
+  // LIVELINESS (is the writer still there?). Lab 04 shows these are two
+  // different questions with two different answers.
+  // ---------------------------------------------------------------------
+
+  struct StationHealth {
+    @key unsigned short station_id;
+
+    boolean radar_ok;
+    boolean ais_rx_ok;
+    unsigned short vessels_in_coverage;
+    unsigned short ownership_strength;   // echoed so the monitor can see it
+    long long uptime_s;
+  };
+
+};

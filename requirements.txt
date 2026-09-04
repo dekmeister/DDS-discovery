@@ -1,0 +1,10 @@
+# Eclipse Cyclone DDS Python binding.
+#
+# Pinned exactly: the binding and the C core ship together in the wheel, so an
+# unpinned upgrade changes the DDS implementation under the labs, not just the
+# Python API. Findings recorded against one version must stay reproducible.
+#
+# 11.0.1 publishes a cp313 manylinux wheel (checked on PyPI, not assumed), and
+# that wheel bundles libddsc, the IDL compiler and the `cyclonedds` CLI, so
+# there is no separate Cyclone DDS installation on this host.
+cyclonedds==11.0.1

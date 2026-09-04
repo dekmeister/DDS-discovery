@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Observability only. This file changes NO QoS, no discovery setting, no
+  transport, no timing. It raises Cyclone's logging so that the resolved
+  configuration and the network interface Cyclone chose for itself are printed,
+  neither of which is visible from the Python API.
+
+  Lab 00's actual runs use no CYCLONEDDS_URI at all — the point of the lab is
+  what happens with nothing configured. This is for the optional `run.sh
+  --trace` step, and for the moment discovery mysteriously fails and you need
+  to know which of this host's ~30 multicast-capable interfaces Cyclone picked.
+-->
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain id="any">
+    <Tracing>
+      <!-- "config" dumps the fully resolved configuration and the interface
+           selection, then stops. "finest" would also trace every packet. -->
+      <Verbosity>config</Verbosity>
+      <!-- Plain "stderr", not "<stderr>": the escaped angle-bracket form
+           documented for this setting is taken literally here and creates a
+           file called <stderr> in the working directory. -->
+      <OutputFile>stderr</OutputFile>
+    </Tracing>
+  </Domain>
+</CycloneDDS>

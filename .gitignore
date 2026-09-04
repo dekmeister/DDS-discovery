@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- DDS learning lab ---
+# Lab run logs. Regenerate with the lab's run.sh; anything worth keeping gets
+# quoted into that lab's findings.md by hand.
+labs/*/out/
