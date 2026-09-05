@@ -36,3 +36,4 @@ Read `CLAUDE.md` for the QoS contract and the rules the code is written under.
 | Lab | Question |
 |---|---|
 | `lab00_hello` | What does a late subscriber receive under default QoS, and which process is the server? |
+| `lab01_instances` | What is an instance, and can a watcher tell a vessel leaving coverage from a spurious report from a crashed station? |

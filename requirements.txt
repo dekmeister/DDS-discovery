@@ -5,6 +5,7 @@
 # Python API. Findings recorded against one version must stay reproducible.
 #
 # 11.0.1 publishes a cp313 manylinux wheel (checked on PyPI, not assumed), and
-# that wheel bundles libddsc, the IDL compiler and the `cyclonedds` CLI, so
-# there is no separate Cyclone DDS installation on this host.
+# that wheel bundles libddsc and the `cyclonedds` CLI, both of which work. It
+# also bundles an idlc that segfaults on this host, so code generation uses a
+# source-built idlc from `make tools`; see the Makefile header and CLAUDE.md.
 cyclonedds==11.0.1

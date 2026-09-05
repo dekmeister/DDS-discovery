@@ -221,3 +221,11 @@ __marimo__/
 # Lab run logs. Regenerate with the lab's run.sh; anything worth keeping gets
 # quoted into that lab's findings.md by hand.
 labs/*/out/
+
+# Generated IDL types. Build output, not source: `make generate` recreates it
+# from idl/vts.idl, which is the ICD and the only thing worth reviewing.
+src/vtslab/generated/
+
+# Locally built idlc (source clone, cmake tree, install prefix). The wheel's
+# bundled idlc segfaults on this host; see the Makefile header.
+.tools/
